@@ -110,6 +110,8 @@ data_missing_ids <- anti_join(data_age_amp_selfreport,
                               data_unique_id_subset,
                                by = "unique_id")
 
+# Problem of full-join is, that it retains a lot of dublicates, cleaning them out is sometimes a struggle, especially finding out wich are the correct values if they change
+
 ```
 
 
