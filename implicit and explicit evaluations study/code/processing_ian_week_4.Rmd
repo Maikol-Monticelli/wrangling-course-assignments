@@ -1,7 +1,7 @@
 ---
 title: "Evaluations of positive and negative stimuli using the Affective Misattribution Procedure (AMP) and self-reports"
 subtitle: "Data processing"
-author: "Template: Ian Hussey; content: [Student name]"
+author: "Template: Ian Hussey; content: [Maikol Monticelli]"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   html_document:
@@ -36,8 +36,8 @@ library(stringr)
 ```{r}
 
 # # demographics
-# data_demographics_raw_messy <- read_csv("../data/raw/data_demographics_raw_messy.csv", skip = 2) |>
-#   janitor::clean_names()
+ # data_demographics_raw_messy <- read_csv("../data/raw/data_demographics_raw_messy.csv", skip = 2) |>
+ # janitor::clean_names()
 
 data_demographics_raw <- read_csv("../data/raw/data_demographics_raw.csv") |>
   janitor::clean_names()
@@ -132,27 +132,86 @@ dat_gender <- data_demographics_raw |>
 
 # Exclusions / data quality
 
-## AMP
-
-Create an exclusion variable `exclude_amp_performance` based on AMP performance: "exclude" if more than 10% of the test block trials trials are < 100ms, or "include" if not.
+## Self Reports
+### Completeness
 
 Create an exclusion variable `exclude_amp_completeness` based on the AMP having the right number of trials.
 
 ```{r}
 
-#data_amp_performance_criteria <- data_amp_raw 
+# basic cleaning
+data_amp_tidied <- data_amp_raw %>% 
+  rename(unique_id = subject,
+         block_type = blockcode,
+         rt = latency) %>% 
+  select(unique_id,rt,block_type) %>% 
+  filter(block_type == "test")
+  
+# are there duplicates?
+data_amp_tidied %>% 
+  count(unique_id, name = "n_trials") %>% 
+  count(n_trials, name = "n_participants") %>% 
+  arrange(desc(n_participants))
+
+# cleaning out duplicates
+data_complete_amp <- data_amp_tidied %>% 
+   count(unique_id, name = "n_trials") %>% 
+  filter(n_trials == 72)
+
+data_amp_tidied_complete <- data_amp_tidied %>% 
+  semi_join(data_complete_amp, by = "unique_id")
+ 
+# are there duplicates -> sanity check?
+data_amp_tidied_complete %>% 
+  count(unique_id, name = "n_trials") %>% 
+  count(n_trials, name = "n_participants") %>% 
+  arrange(desc(n_participants))
+
 
 ```
+
+
+# Fast Trials
+
+Create an exclusion variable `exclude_amp_performance` based on AMP performance: "exclude" if more than 10% of the test block trials trials are < 100ms, or "include" if not.
+
+```{r}
+data_amp_performance_criteria <- data_amp_tidied_complete %>% 
+   mutate(fast_trial = ifelse(rt < 100, 1,0)) %>%
+  # for each participant...
+  group_by(unique_id) %>% 
+  #... summarize the percent of fast trials 
+  summarize(percent_fast_trials = mean(fast_trial)*100) %>% 
+  # flag unique ID and write exclude include in a new row
+  mutate(exclude_amp_performance = ifelse(percent_fast_trials>10,"exclude","include"))
+  
+```
+
 
 # Score measures
 
 ## Self-reports
 
+TODO
+-Replace all non 1-7 numbers in "response" with NA
+-count the number of uniue_id with correct/wrong number of response
+-exclude them
+-check your exclusion worked
+-use: mutate, group_by, summarize,_join
+
 Create a mean score for each participant of the three self-report items.
 
 ```{r}
 
-#data_selfreport_trial_level <- data_selfreport_raw 
+data_selfreport_trial_tidy <- data_selfreport_raw %>% 
+  rename(unique_id = subject,
+         item_type = trialcode) %>% 
+  select(unique_id,response,item_type) %>% 
+  filter(item_type != "instructions")
+
+
+# data_selfreport_trial_level <- data_selfreport_raw %>% 
+  
 
 ```
 
