@@ -1,6 +1,6 @@
 ---
 title: "Practicing data wrangling"
-author: "Template: Ian Hussey; content: [Student name]"
+author: "Template: Ian Hussey; content: [Maikol Monticelli]"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   html_document:
@@ -85,7 +85,22 @@ nrow(data_amp_raw)
 ```
 
 - Why are there different number of rows in the three data frames when this data all comes from the same participants? 
+```{r}
+test <- data_demographics_raw %>% 
+  count(subject)
+
+test2 <- data_selfreport_raw %>% 
+  count(subject)
+
+test3 <- data_amp_raw %>% 
+  count(subject)
+
+# There are different numbers in each data frames because its always the same participants, but in each dataset the number of answers of each subject is different. Shortly said it differs in the amount of rows for each participant (a row for each trial).
+
+```
+
 - Why are the numbers not round?
+ It is because not every participant has the same amount of trials 
 
 # The pipe (%>% or %>%) 
 
@@ -163,16 +178,20 @@ identical(example2_without_pipe, example2_with_pipe)
 It is almost always useful to start by converting all column names to ones that play nice with R/tidyverse and which use the same naming convention (e.g., snake_case, which is standard in tidyverse).
 
 How would you bring up the help menu to understand how `janitor::clean_names()` works?
+  I would write ?clean_names in the console  
 
 Rewrite each of the below to use the pipe.
 
 ```{r}
 
-data_demographics_clean_names <- clean_names(data_demographics_raw) 
+data_demographics_clean_names <- data_demographics_raw %>% 
+  clean_names()
 
-data_selfreport_clean_names <- clean_names(data_selfreport_raw) 
+data_selfreport_clean_names <- data_selfreport_raw %>% 
+  clean_names()
 
-data_amp_clean_names <- clean_names(data_amp_raw) 
+data_amp_clean_names <- data_amp_raw %>% 
+  clean_names()
 
 ```
 
