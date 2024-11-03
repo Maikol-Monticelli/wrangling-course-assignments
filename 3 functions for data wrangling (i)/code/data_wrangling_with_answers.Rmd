@@ -1,14 +1,16 @@
 ---
 title: "Practicing data wrangling"
-author: "Template: Ian Hussey; content: [Maikol Monticelli]"
+author: 'Template: Ian Hussey; content: [Maikol Monticelli]'
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
+  pdf_document:
+    toc: true
   html_document:
     code_folding: hide
     highlight: haddock
     theme: flatly
-    toc: yes
-    toc_float: yes
+    toc: true
+    toc_float: true
 ---
 
 ```{r, include=FALSE}
@@ -297,7 +299,7 @@ data_amp_trimmed <- read_csv(file = "../data/raw/data_amp_raw.csv") %>%
   rename(unique_id = subject,
          block = blockcode,
          trial_type = trialcode) %>% 
-  select(unique_id,block,trial_type)
+  select(unique_id,block,trial_type,latency)
   
   
 ```
@@ -398,7 +400,7 @@ You can also have multiple criteria in your filter call, both of which have to b
 example_multiple_criteria_1 <- data_amp_trimmed %>%
   filter(block != "test" & correct == 1)
 
-example_multiple_criteria_2 <- data_amp_trimmed %>%
+example_multiple_criteria_2 <- data_amp_trimmed%>%
   filter(block != "test" | correct == 1)
 
 # note that these provide different results - make sure you understand why
@@ -417,6 +419,8 @@ data_selfreport_trials <- data_selfreport_trimmed %>%
 
 data_amp_test_trials <- data_amp_trimmed %>%
   filter(block == "test" & trial_type != "instructions")
+
+
 
 ```
 
@@ -520,7 +524,6 @@ When analyzing cognitive behavioral tasks, it is common to employ mastery criter
 Try doing this with a simple logical test of whether latency < 100. You can do this with or without using the `ifelse()` function.
 
 ```{r}
-
 data_amp_test_trials_with_fast_trials <- data_amp_test_trials %>%
   mutate(fast_trial = latency < 100)
 
@@ -536,19 +539,19 @@ In simple cases like this, you can use `mutate()` and `ifelse()` to change impos
 
 ```{r}
 
-# what values are present?
+# what values?
 data_demographics_trimmed %>%
   filter(item == "age") %>%
   count(response) 
 
-# fix them with mutate
+# Fixing them (mutate)
 data_demographics_age_tidy <- data_demographics_trimmed %>%
   filter(item == "age") %>%
   mutate(response = ifelse(response == "old", NA, response),
          response = as.numeric(response)) %>%
   select(unique_id, age = response) # note that you can rename inside a select call
 
-# check this has fixed the issue
+# fixed?
 data_demographics_age_tidy %>%
   count(age)
 
@@ -565,20 +568,22 @@ Use `ifelse()` and `%in%` inside `mutate()` to change values other than the Like
 **If you struggle to do this: practice writing 'pseudocode' here. That is, without knowing the right code, explain in precise logic what you want the computer to do. This can be converted to R more easily.** 
 
 ```{r}
-
-# what values are present?
+# what value?
 data_selfreport_trials %>%
   count(response)
 
-# what type of data is the response column?
+# datatype in response column?
 class(data_selfreport_trials$response)
 
 # remove non Likert values
 data_selfreport_tidy <- data_selfreport_trials %>%
-  mutate(response = ifelse(response %in% c("1", "2", "3", "4", "5", "6", "7"), response, NA),
-         response = as.numeric(response))
+  mutate(response = case_when(
+  response %in% c("1", "2", "3", "4", "5", "6", "7") ~ response,
+  TRUE ~ NA_character_
+))
 
-# show the data after changes
+
+# datachanges
 data_selfreport_tidy %>%
   count(response)
 
@@ -591,6 +596,18 @@ What other ways are there of implementing this mutate, e.g., without using `%in%
 ```{r}
 
 # write examples here
+# you can use case when 
+
+mutate(response = case_when(
+  response == "1" ~ response,
+  response == "2" ~ response,
+  response == "3" ~ response,
+  response == "4" ~ response,
+  response == "5" ~ response,
+  response == "6" ~ response,
+  response == "7" ~ response,
+  TRUE ~ NA_character_
+))
 
 ```
 
@@ -603,15 +620,9 @@ The AMP data needs to be reverse scored. Just like an item on a self-report that
 ```{r}
 
 data_amp_tidy <- data_amp_test_trials_with_fast_trials %>%
-  mutate(correct = case_when(trial_type == "prime_positive" ~ correct,
-                             trial_type == "prime_negative" & correct == 0 ~ 1,
-                             trial_type == "prime_negative" & correct == 1 ~ 0))
-
-# you can also specify a default value to return if none of the logical tests are passed with 'TRUE ~':
-data_amp_tidy <- data_amp_test_trials_with_fast_trials %>%
   mutate(correct = case_when(trial_type == "prime_negative" & correct == 0 ~ 1,
                              trial_type == "prime_negative" & correct == 1 ~ 0,
-                             TRUE ~ correct))
+                             TRUE ~ correct)
   
 ```
 
@@ -675,23 +686,23 @@ Often, we don't want to reduce a data frame down to a single row / summarize the
 ```{r}
 
 # # this code creates data needed for this example - you can simply load the data from disk and skip over this commented-out code. we will come back to things like 'joins' later
-# data_demographics_unique_participant_codes <- data_demographics_trimmed %>%
-#   count(unique_id) %>%
-#   filter(n == 2)
+ data_demographics_unique_participant_codes <- data_demographics_trimmed %>%
+   count(unique_id) %>%
+   filter(n == 2)
 # 
-# data_demographics_age_gender_tidy <- data_demographics_trimmed %>%
-#   semi_join(data_demographics_unique_participant_codes, by = "unique_id") %>%
-#   pivot_wider(names_from = "item",
-#               values_from = "response") %>%
-#   mutate(age = ifelse(age == "old", NA, age),
-#          age = as.numeric(age),
-#          gender = tolower(gender),
-#          gender = stringr::str_remove_all(gender, regex("\\W+")), # regex is both very useful and awful to write
-#          gender = case_when(gender == "female" ~ gender,
-#                             gender == "male" ~ gender,
-#                             gender == "nonbinary" ~ gender,
-#                             gender == "woman" ~ "female",
-#                             gender == "man" ~ "male"))
+ data_demographics_age_gender_tidy <- data_demographics_trimmed %>%
+   semi_join(data_demographics_unique_participant_codes, by = "unique_id") %>%
+   pivot_wider(names_from = "item",
+               values_from = "response") %>%
+   mutate(age = ifelse(age == "old", NA, age),
+          age = as.numeric(age),
+          gender = tolower(gender),
+          gender = stringr::str_remove_all(gender, regex("\\W+")), # regex is both very useful and awful to write
+          gender = case_when(gender == "female" ~ gender,
+                             gender == "male" ~ gender,
+                             gender == "nonbinary" ~ gender,
+                             gender == "woman" ~ "female",
+                             gender == "man" ~ "male"))
 # 
 # dir.create("../data/processed")
 # write_csv(data_demographics_age_gender_tidy, "../data/processed/data_demographics_age_gender_tidy.csv")
@@ -772,7 +783,28 @@ Using only participants with complete data, calculate the mean and SD of all par
 
 ```{r}
 
-# data_selfreport_tidy
+# Step 1: Calculate mean scores and count of items
+mean_scores <- data_selfreport_tidy %>%
+  group_by(unique_id) %>%
+  summarise(
+    mean_score = mean(c(like, positive, prefer), na.rm = TRUE),
+    count_items = sum(!is.na(c(like, positive, prefer))),
+    .groups = 'drop'
+  ) %>%
+  mutate(complete_data = count_items == 3)
+
+# Step 2: Filter participants with complete data
+complete_data <- mean_scores %>%
+  filter(complete_data)
+
+# Step 3: Calculate the mean and standard deviation of the mean scores for participants with complete data
+mean_of_means <- mean(complete_data$mean_score)
+sd_of_means <- sd(complete_data$mean_score)
+
+# Display results
+print(paste("Mean of participants' mean scores with complete data:", mean_of_means))
+print(paste("Standard deviation of participants' mean scores with complete data:", sd_of_means))
+
 
 ```
 
@@ -784,7 +816,23 @@ Calculate the proportion of participants who are to be excluded.
 
 ```{r}
 
-# data_amp_tidy
+
+# Step 1: Calculate proportions
+amp_data <- data_amp_tidy %>%
+  group_by(unique_id) %>%
+  summarise(
+    prop_prime_congruent = mean(correct, na.rm = TRUE),
+    prop_too_fast = mean(too_fast, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+  mutate(exclude_amp = ifelse(prop_too_fast > 0.10, "exclude", "include"))
+
+# Step 2: Calculate the proportion of participants to be excluded
+exclusion_rate <- sum(amp_data$exclude_amp == "exclude") / nrow(amp_data)
+
+# Display the resulting data frame and the exclusion rate
+print(amp_data)
+print(paste("Proportion of participants to be excluded:", exclusion_rate))
 
 ```
 
