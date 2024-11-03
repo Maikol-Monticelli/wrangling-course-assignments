@@ -210,9 +210,24 @@ data_demographics_clean_names %>%
   colnames() %>%
   dput()
 
-#data_selfreport_clean_names
+# print all column names
+colnames(data_selfreport_clean_names)
+# print all column names as a vector
+dput(colnames(data_selfreport_clean_names))
+# print all column names as a vector using the pipe
+data_selfreport_clean_names %>%
+  colnames() %>%
+  dput()
 
-#data_amp_clean_names
+
+# print all column names
+colnames(data_amp_clean_names)
+# print all column names as a vector
+dput(colnames(data_amp_clean_names))
+# print all column names as a vector using the pipe
+data_amp_clean_names %>%
+  colnames() %>% 
+  dput()
 
 ```
 
@@ -265,28 +280,26 @@ Remember: this is how we solve coding problems: break them down into smaller tas
 # remove all objects in environment
 rm(list = ls())
 
-
 data_demographics_trimmed <- read_csv("../data/raw/data_demographics_raw.csv") %>%
-  clean_names() %>%
+clean_names() %>% 
   rename(unique_id = subject,
          item = trialcode) %>%
-  select(unique_id, item, response)
+  select(unique_id,item,response)
 
-
-data_selfreport_trimmed <- read_csv("../data/raw/data_selfreport_raw.csv") %>%
-  clean_names() %>%
+data_selfreport_trimmed <- read_csv(file = "../data/raw/data_selfreport_raw.csv") %>% 
+  clean_names() %>% 
   rename(unique_id = subject,
          item = trialcode) %>%
-  select(unique_id, item, response)
+  select(unique_id,item,response)
 
-
-data_amp_trimmed <- read_csv("../data/raw/data_amp_raw.csv") %>%
-  clean_names() %>%
+data_amp_trimmed <- read_csv(file = "../data/raw/data_amp_raw.csv") %>% 
+  clean_names() %>% 
   rename(unique_id = subject,
          block = blockcode,
-         trial_type = trialcode) %>%
-  select(unique_id, block, trial_type, correct, latency)
-
+         trial_type = trialcode) %>% 
+  select(unique_id,block,trial_type)
+  
+  
 ```
 
 # Counting frequencies 
@@ -320,12 +333,14 @@ data_amp_trimmed %>%
 
 data_amp_trimmed %>%
   count(trial_type)
+ 
 
-data_amp_trimmed %>%
-  count(correct)
-
-data_amp_trimmed %>%
-  count(latency)
+# this are not columns so it cannot be counted
+ # data_amp_trimmed %>%
+ #   count(correct)
+# 
+# data_amp_trimmed %>%
+#   count(latency)
 
 ```
 
