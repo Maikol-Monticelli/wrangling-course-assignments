@@ -3,14 +3,14 @@ title: "Practicing data wrangling"
 author: 'Template: Ian Hussey; content: [Maikol Monticelli]'
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
-  pdf_document:
-    toc: true
   html_document:
     code_folding: hide
     highlight: haddock
     theme: flatly
     toc: true
     toc_float: true
+  pdf_document:
+    toc: true
 ---
 
 ```{r, include=FALSE}
@@ -569,14 +569,14 @@ Use `ifelse()` and `%in%` inside `mutate()` to change values other than the Like
 
 ```{r}
 # what value?
-data_selfreport_trials %>%
+data_selfreport_trimmed %>%
   count(response)
 
 # datatype in response column?
-class(data_selfreport_trials$response)
+class(data_selfreport_trimmed$response)
 
 # remove non Likert values
-data_selfreport_tidy <- data_selfreport_trials %>%
+data_selfreport_tidy <- data_selfreport_trimmed %>%
   mutate(response = case_when(
   response %in% c("1", "2", "3", "4", "5", "6", "7") ~ response,
   TRUE ~ NA_character_
@@ -787,8 +787,8 @@ Using only participants with complete data, calculate the mean and SD of all par
 mean_scores <- data_selfreport_tidy %>%
   group_by(unique_id) %>%
   summarise(
-    mean_score = mean(c(like, positive, prefer), na.rm = TRUE),
-    count_items = sum(!is.na(c(like, positive, prefer))),
+    mean_score = mean(c("like", "positive", "prefer"), na.rm = TRUE),
+    count_items = sum(!is.na(c("like", "positive", "prefer"))),
     .groups = 'drop'
   ) %>%
   mutate(complete_data = count_items == 3)
@@ -801,9 +801,6 @@ complete_data <- mean_scores %>%
 mean_of_means <- mean(complete_data$mean_score)
 sd_of_means <- sd(complete_data$mean_score)
 
-# Display results
-print(paste("Mean of participants' mean scores with complete data:", mean_of_means))
-print(paste("Standard deviation of participants' mean scores with complete data:", sd_of_means))
 
 
 ```
@@ -829,10 +826,6 @@ amp_data <- data_amp_tidy %>%
 
 # Step 2: Calculate the proportion of participants to be excluded
 exclusion_rate <- sum(amp_data$exclude_amp == "exclude") / nrow(amp_data)
-
-# Display the resulting data frame and the exclusion rate
-print(amp_data)
-print(paste("Proportion of participants to be excluded:", exclusion_rate))
 
 ```
 
