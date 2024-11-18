@@ -173,6 +173,7 @@ ggplot(data = data_after_exclusions,
        aes(x = mean_self_report)) +
   geom_histogram()
 
+#binwith groups the data into chunks, you can change the scale
 ```
 
 ## Slightly better plot for self-reports
@@ -206,6 +207,22 @@ Create a similar plot for the AMP scores in `data_after_exclusions`.
 
 ```{r}
 
+mean_amp <- data_after_exclusions %>% 
+  summarise(mean_amp = mean(amp_score)) %>% 
+  pull(mean_amp)
+
+
+ggplot(data = data_after_exclusions,
+       aes(x = amp_score)) +
+  geom_histogram(binwidth = 0.1,boundary =0.1, colour = "black")+
+  scale_x_continuous( breaks = seq(0,1,0.1),
+                      name = "AMP Score",
+                      limits = c(0, 1)) +
+  scale_y_continuous(breaks = seq(0,60,10),
+                     name = "Frequency")+
+  geom_vline(xintercept = mean_amp, linetype = "dotted", colour = "red") +
+  
+  theme_minimal()
 
 
 ```
@@ -242,7 +259,18 @@ Make a similar density plot for the AMP.
 - Name both axis names more clearly.  
 
 ```{r}
-
+ggplot(data=data_after_exclusions,
+       aes(x = amp_score)) +
+  geom_density(adjust =1,
+               color = "#FF69B4",
+               fill = "darkblue", 
+               alpha = 0.3) +
+    scale_x_continuous(breaks = seq(0,1,0.1),
+                       name = "AMP Scores",
+                     limits = c(0, 1)) +
+  scale_y_continuous(breaks = seq(0,5,1),
+                     name = "Frequency")
+  theme_minimal()
 
 
 ```
@@ -301,7 +329,21 @@ Make a similar plot for the self-reports.
 - Use `coord_flip()` to swap the X and Y axes.
 
 ```{r}
-
+ggplot(data = data_after_exclusions,
+       aes(x = mean_self_report,
+           y = gender))+
+  geom_col(fill="pink",
+           colour = "violet",
+           width = 0.6)+
+   geom_errorbar(aes(xmin = mean_self_report - amp_se, 
+                    xmax = amp_mean + amp_se), 
+                width = 0.1, 
+                color = "black") +
+  labs(title = "Bar Plot of with Standard Errors",
+       x = "GeMean AMP scorender",
+       y = "Gender") +
+  coord_flip()+
+  theme_linedraw() 
 
 
 ```
