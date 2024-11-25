@@ -1,6 +1,6 @@
 ---
 title: "Reshaping data with {tidyr}' pivot_wider() and pivot_longer()"
-author: "Template: Ian Hussey; Content: [student name]"
+author: "Template: Ian Hussey; Content: [Maikol Monticelli]"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output:
   html_document:
@@ -35,6 +35,10 @@ dir.create("plots")
 library(dplyr)
 library(tidyr)
 library(tibble)
+# install.packages("devtools")
+# install.packages("fastmap")
+library(devtools)
+# devtools::install_github("debruine/faux")
 library(faux)
 library(janitor)
 library(ggplot2)
@@ -138,6 +142,8 @@ ggplot(data_long, aes(x = response)) +
 ```
 
 - What other ways could you specify this pivot_longer call's arguments?
+  - You can use Contain or the negative selection with -id 
+  - facet_wrap is to ggplot and group_by is to dyplr
 
 ### Calculate sum scores
 
@@ -182,7 +188,7 @@ Wrangle the demographics data included in this exercise more efficiently by resh
 
 ```{r}
 
-
+dat <- read_csv("../data/raw/data_demographics_raw.csv")
 
 ```
 
