@@ -191,6 +191,22 @@ Wrangle the demographics data included in this exercise more efficiently by resh
 dat <- read_csv("../data/raw/data_demographics_raw.csv")
 
 ```
+```{r}
+data_long_selected <- dat %>% 
+ pivot_longer(select("subject","trialcode", "response"),
+               names_to = "item",
+               values_to = "response")
+```
+
+```{r}
+
+wide_data_gender <- dat %>%
+    pivot_wider(names_from = subject, values_from = response)
+print(wide_data_gender)
+
+
+```
+
 
 # Session info
 
