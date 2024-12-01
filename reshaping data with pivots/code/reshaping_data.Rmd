@@ -47,6 +47,7 @@ library(psych)
 library(readr)
 library(knitr)
 library(kableExtra)
+library(janitor)
 
 ```
 
@@ -192,20 +193,33 @@ dat <- read_csv("../data/raw/data_demographics_raw.csv")
 
 ```
 ```{r}
-data_long_selected <- dat %>% 
- pivot_longer(select("subject","trialcode", "response"),
-               names_to = "item",
-               values_to = "response")
+library(dplyr)
+library(tidyr)
+library(readr)
+library(janitor) # for clean_names()
+library(stringr)
 ```
 
 ```{r}
+data_long_selected %>% 
+  count(gender)
 
-wide_data_gender <- dat %>%
-    pivot_wider(names_from = subject, values_from = response)
-print(wide_data_gender)
-
-
+data_long_selected <- dat %>% 
+ rename(id = subject) %>% 
+  select(id,trialcode,response) %>% 
+  pivot_wider(names_from = trialcode,
+              values_from = response) %>% 
+  mutate(age = str_remove_all(age, "[^\\d.]"), 
+         age = na_if(age, ""),
+         age = as.numeric(age)) %>% 
+  mutate(gender = case_when(grepl("Female|female|FEMALE|Woman",gender) ~ "Female",
+                              grepl("Male|male|MALE",gender) ~ "Male",
+                              grepl("non binary|Non-Binary",gender) ~ "Non-Binary",
+                              TRUE ~ NA_character_))
+ 
+              
 ```
+
 
 
 # Session info
